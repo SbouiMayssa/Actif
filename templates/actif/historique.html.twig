@@ -1,0 +1,54 @@
+{% extends 'template.html.twig' %}
+
+{% block pageName %}
+    <title>Historique actif</title>
+{% endblock %}
+
+{% block body %}
+<h2 class="text-2xl font-bold mb-4">Historique de l'actif : {{ actif.numSerie }}</h2>
+
+<table class="w-full border border-gray-400 border-collapse">
+    <thead class="bg-blue-500 text-black">
+        <tr>
+            <th class="border border-gray-400 px-4 py-2">Date</th>
+            <th class="border border-gray-400 px-4 py-2">Action</th>
+            <th class="border border-gray-400 px-4 py-2">Détails</th>
+            <th class="border border-gray-400 px-4 py-2">Effectué par</th>
+            <th class="border border-gray-400 px-4 py-2">Etat</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for historique in historiques %}
+            <tr class="{% if loop.index is even %}bg-gray-100{% else %}bg-white{% endif %}">
+                <td class="border border-gray-400 px-4 py-2">
+                    {{ historique.dateAction ? historique.dateAction|date('d/m/Y H:i') : 'Date inconnue' }}
+                </td>
+                <td class="border border-gray-400 px-4 py-2">
+                    {{ historique.action ?? 'Action inconnue' }}
+                </td>
+                <td class="border border-gray-400 px-4 py-2">
+                    {% if historique.details is not empty %}
+                        {% for key, value in historique.details %}
+                            {{ value }}<br>
+                        {% endfor %}
+                    {% else %}
+                        <span class="text-gray-500 italic">Aucun détail.</span>
+                    {% endif %}
+                </td>
+                <td class="border border-gray-400 px-4 py-2">
+                    {{ historique.actionneur ? historique.actionneur.nom : 'Utilisateur inconnu' }}
+                </td>
+                <td class="border border-gray-400 px-4 py-2">
+                    {{ historique.etat ? historique.etat : 'fonctionnel' }}
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td class="border border-gray-400 px-4 py-2 text-center text-gray-500 italic" colspan="4">
+                    Aucun historique pour cet actif.
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

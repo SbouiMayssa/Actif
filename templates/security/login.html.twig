@@ -1,0 +1,58 @@
+{% extends 'templateLogin.html.twig' %}
+
+{% block pageName %}
+    <title> Page Login</title>
+{% endblock %}
+
+{% block body %}
+    <div class="container h-100">
+        <div class="row justify-content-center align-items-center h-100">
+            <div class="col-xl-5 col-lg-6 col-md-8 mx-auto"> <!-- Centered Column -->
+                <div class="card o-hidden border-0 shadow-lg my-5">
+                    <div class="card-body p-5">
+                        <div class="text-center">
+                            <img src="{{ asset('assets/img/logo_bt_xs.png') }}" alt="Logo Banque" 
+    class="mb-4"
+    style="
+        width: 100px !important; 
+        height: auto !important; 
+        background-color: #f8f9fc !important; 
+        padding: 15px !important; 
+        border-radius: 12px !important; 
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15) !important; 
+        border: 1px solid #ddd !important;
+    ">
+
+                            <h1 class="h4 text-gray-900 mb-2">Bienvenue sur Gestion Actifs</h1>
+                            <p class="text-muted">Connectez-vous pour gérer et suivre vos équipements.</p>
+                        </div>
+
+                        {% if error %}
+                            <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                        {% endif %}
+
+                       
+                            <form method="post" class="user">
+                                <div class="form-group">
+                                    <input type="email" value="{{ last_username }}" name="email" id="exampleInputEmail"
+                                        class="form-control form-control-user" placeholder="Entrez Votre Adresse E-mail..."
+                                        autocomplete="email" required autofocus>
+                                </div>
+                                <div class="form-group">
+                                    <input type="password" name="password" id="exampleInputPassword"
+                                        class="form-control form-control-user" placeholder="Mot de passe"
+                                        autocomplete="current-password" required>
+                                </div>
+                                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                                <button class="btn btn-primary btn-user btn-block" type="submit">Se connecter</button>
+                            </form>
+
+                       
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

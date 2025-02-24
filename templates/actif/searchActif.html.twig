@@ -1,0 +1,95 @@
+{% extends 'template.html.twig' %}
+
+{% block pageName %}
+    <title>Liste des actifs</title>
+{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Liste des Actifs</h1>
+        
+        <!-- Affichage des messages flash -->
+        {% for message in app.session.flashbag.get('success') %}
+            <div class="alert alert-success">{{ message }}</div>
+        {% endfor %}
+        {% for message in app.session.flashbag.get('error') %}
+            <div class="alert alert-danger">{{ message }}</div>
+        {% endfor %}
+        
+        <!-- Barre de recherche -->
+        <form method="get" action="{{ path('actif_s') }}" class="mb-4">
+            <div class="input-group">
+                <input type="text" name="q" class="form-control" placeholder="Rechercher par numéro de série..." value="{{ query ?? '' }}">
+                <button class="btn btn-primary" type="submit">
+                    <i class="bi bi-search"></i> Rechercher
+                </button>
+            </div>
+        </form>
+        
+        <!-- Liste des actifs -->
+        <div class="row">
+            {% if actifs is not empty %}
+                {% for actif in actifs %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card shadow-sm h-100"> <!-- Ajout de h-100 ici -->
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    {{ actif.nom }}
+                                    {% if actif.type == 'Ordinateur' %}
+                                        <i class="bi bi-laptop"></i>
+                                    {% elseif actif.type == 'Imprimante' %}
+                                        <i class="bi bi-printer"></i>
+                                    {% elseif actif.type == 'Serveur' %}
+                                        <i class="bi bi-hdd-network"></i>
+                                    {% endif %}
+                                </h5>
+                                <p class="card-text"><strong>Type :</strong> {{ actif.type }}</p>
+                                <p class="card-text"><strong>État :</strong>
+                                    {% if actif.etat == 'en panne' %}
+                                        <span class="badge bg-danger">En Panne</span>
+                                    {% elseif actif.etat == 'fonctionnel' %}
+                                        <span class="badge bg-success">Fonctionnel</span>
+                                    {% elseif actif.etat == 'remplacé' %}
+                                        <span class="badge bg-warning">Remplacé</span>
+                                    {% endif %}
+                                </p>
+                                <p class="card-text"><strong>Numéro de série :</strong> {{ actif.numSerie }}</p>
+                                <p class="card-text"><strong>Date d'Acquisition :</strong> {{ actif.dateAcquisation|date('d/m/Y') }}</p>
+                                
+                                <!-- Affichage de l'Emplacement -->
+                                <p class="card-text"><strong>Emplacement :</strong> 
+                                    {{ actif.location ? actif.location.getAdresse ~ ', Bâtiment ' ~ actif.location.getBatiment ~ ', Étage ' ~ actif.location.getNumEtage : 'Non défini' }}
+                                </p>
+                                
+                                <!-- Affichage des Utilisateurs Assignés -->
+                                <p class="card-text"><strong>Assigné à :</strong> 
+                                    {% if actif.userAssigned is empty %}
+                                        Non assigné
+                                    {% else %}
+                                        {% for user in actif.userAssigned %}
+                                            {{ user.nom }} {{ user.prenom }}{% if not loop.last %}, {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                </p>
+
+                                <div class="d-flex justify-content-between">
+                                    <a href="{{ path('actif_edit', {'id': actif.id}) }}" class="btn btn-primary btn-sm">Modifier</a>
+                                    <form method="post" action="{{ path('actif_delete', {'id': actif.id}) }}" onsubmit="return confirm('Voulez-vous vraiment supprimer cet actif ?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ actif.id) }}">
+                                        <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12 text-center">
+                    <h5 class="text-muted">Aucun actif trouvé pour "<strong>{{ query }}</strong>".</h5>
+                    <a href="{{ path('all_actif') }}" class="btn btn-primary mt-3">Retour à la liste</a>
+                    <a href="{{ path('add_actif') }}" class="btn btn-success mt-3">Ajouter un actif</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

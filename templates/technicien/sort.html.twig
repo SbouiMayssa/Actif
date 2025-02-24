@@ -1,0 +1,109 @@
+{% extends 'templatetech.html.twig' %}
+
+{% block pageName %}
+    <title>Trier un Actif</title>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Trier les Actifs</h1>
+
+    <!-- Barre de sélection de tri -->
+    <div class="mb-4 text-center">
+        <a href="{{ path('actif_sort', {'criteria': 'type'}) }}" class="btn btn-outline-primary mx-2">Trier par Type</a>
+        <a href="{{ path('actif_sort', {'criteria': 'date'}) }}" class="btn btn-outline-primary mx-2">Trier par Date d'Acquisition</a>
+    </div>
+
+    <!-- Liste des actifs triés -->
+    <div class="row">
+        {% if actifs is not empty %}
+            {% for actif in actifs %}
+                <div class="col-md-4 mb-4"> <!-- Colonne contenant chaque carte -->
+                    <div class="card shadow-sm h-100 d-flex flex-column"> <!-- Ajout des classes d-flex et h-100 -->
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                {{ actif.nom }}
+                                {% if actif.type == 'Ordinateur' %}
+                                    <i class="bi bi-laptop"></i>
+                                {% elseif actif.type == 'Imprimante' %}
+                                    <i class="bi bi-printer"></i>
+                                {% elseif actif.type == 'Serveur' %}
+                                    <i class="bi bi-hdd-network"></i>
+                                {% endif %}
+                            </h5>
+                            <p class="card-text"><strong>Type :</strong> {{ actif.type }}</p>
+                            <p class="card-text"><strong>État :</strong> 
+                                {% if actif.etat == 'en panne' %}
+                                    <span class="badge bg-danger text-white px-3 py-2 rounded-pill">
+                                        <i class="bi bi-exclamation-triangle-fill"></i> En Panne
+                                    </span>
+                                {% elseif actif.etat == 'fonctionnel' %}
+                                    <span class="badge bg-success text-white px-3 py-2 rounded-pill">
+                                        <i class="bi bi-check-circle-fill"></i> Fonctionnel
+                                    </span>
+                                {% elseif actif.etat == 'remplacé' %}
+                                    <span class="badge bg-warning text-dark px-3 py-2 rounded-pill">
+                                        <i class="bi bi-arrow-repeat"></i> Remplacé
+                                    </span>
+                                {% endif %}
+                            </p>
+                            <p class="card-text"><strong>Numéro de série :</strong> {{ actif.numSerie }}</p>
+                            <p class="card-text"><strong>Date d'Acquisition :</strong> {{ actif.dateAcquisation|date('d/m/Y') }}</p>
+
+                            <!-- Affichage de l'Emplacement -->
+                            <p class="card-text"><strong>Emplacement :</strong> 
+                                {{ actif.location ? actif.location.getAdresse ~ ', Bâtiment ' ~ actif.location.getBatiment ~ ', Étage ' ~ actif.location.getNumEtage : 'Non défini' }}
+                            </p>
+
+                            <!-- Affichage des Utilisateurs Assignés -->
+                            <p class="card-text"><strong>Assigné à :</strong> 
+                                {% if actif.userAssigned is empty %}
+                                    Non assigné
+                                {% else %}
+                                    {% for user in actif.userAssigned %}
+                                        {{ user.nom }} {{ user.prenom }}{% if not loop.last %}, {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                            </p>
+
+                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#updateModal{{ actif.id }}">
+                                <i class="bi bi-pencil-square"></i> Modifier l'État
+                            </button>
+
+                            <!-- Modal pour mise à jour de l'état -->
+                            <div class="modal fade" id="updateModal{{ actif.id }}" tabindex="-1" aria-labelledby="updateModalLabel{{ actif.id }}" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="updateModalLabel{{ actif.id }}">Modifier l'État de {{ actif.nom }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form method="post" action="{{ path('update_etat', {'id': actif.id}) }}">
+                                                <div class="mb-3">
+                                                    <label for="etat" class="form-label">Nouvel État :</label>
+                                                    <select name="etat" id="etat" class="form-select">
+                                                        <option value="fonctionnel">Fonctionnel</option>
+                                                        <option value="remplacé">Remplacé</option>
+                                                    </select>
+                                                </div>
+                                                <button type="submit" class="btn btn-success w-100">
+                                                    <i class="bi bi-check-circle"></i> Confirmer
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div> <!-- Fin de la col-md-4 -->
+            {% endfor %}
+        {% else %}
+            <div class="col-12 text-center">
+                <p class="text-muted">Aucun actif trouvé.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

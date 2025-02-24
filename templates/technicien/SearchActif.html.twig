@@ -1,0 +1,103 @@
+{% extends 'templatetech.html.twig' %}
+
+{% block pageName %}
+    <title>Liste des actifs</title>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Liste des Actifs en pannes</h1>
+
+    <!-- Barre de recherche -->
+    <form method="get" action="{{ path('search_actif') }}" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="Rechercher par numéro de série..." value="">
+            <button class="btn btn-primary" type="submit">
+                <i class="bi bi-search"></i> Rechercher
+            </button>
+        </div>
+    </form>
+
+    <!-- Résultats de la recherche -->
+    <div class="row">
+        {% if actifs is not empty %}
+            {% for actif in actifs %}
+                <div class="col-md-4 mb-4"> <!-- Colonne contenant chaque carte -->
+                    <div class="card shadow-sm h-100 d-flex flex-column"> <!-- Ajout des classes d-flex et h-100 -->
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                {{ actif.nom }}
+                                {% if actif.type == 'Ordinateur' %}
+                                    <i class="bi bi-laptop"></i>
+                                {% elseif actif.type == 'Imprimante' %}
+                                    <i class="bi bi-printer"></i>
+                                {% elseif actif.type == 'Serveur' %}
+                                    <i class="bi bi-hdd-network"></i>
+                                {% endif %}
+                            </h5>
+                            <p class="card-text"><strong>Type :</strong> {{ actif.type }}</p>
+                            <p class="card-text"><strong>État :</strong>
+                                <span class="badge bg-danger text-white px-3 py-2 rounded-pill">
+                                    <i class="bi bi-exclamation-triangle-fill"></i> En Panne
+                                </span>
+                            </p>
+                            <p class="card-text"><strong>Numéro de série :</strong> {{ actif.numSerie }}</p>
+                            <p class="card-text"><strong>Date d'Acquisition :</strong> {{ actif.dateAcquisation|date('d/m/Y') }}</p>
+
+                            <!-- Affichage de l'Emplacement -->
+                            <p class="card-text"><strong>Emplacement :</strong> 
+                                {{ actif.location ? actif.location.getAdresse ~ ', Bâtiment ' ~ actif.location.getBatiment ~ ', Étage ' ~ actif.location.getNumEtage : 'Non défini' }}
+                            </p>
+
+                            <!-- Affichage des Utilisateurs Assignés -->
+                            <p class="card-text"><strong>Assigné à :</strong> 
+                                {% if actif.userAssigned is empty %}
+                                    Non assigné
+                                {% else %}
+                                    {% for user in actif.userAssigned %}
+                                        {{ user.nom }} {{ user.prenom }}{% if not loop.last %}, {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                            </p>
+
+                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#updateModal{{ actif.id }}">
+                                <i class="bi bi-pencil-square"></i> Modifier l'État
+                            </button>
+
+                            <!-- Modal pour mise à jour de l'état -->
+                            <div class="modal fade" id="updateModal{{ actif.id }}" tabindex="-1" aria-labelledby="updateModalLabel{{ actif.id }}" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="updateModalLabel{{ actif.id }}">Modifier l'État de {{ actif.nom }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form method="post" action="{{ path('update_etat', {'id': actif.id}) }}">
+                                                <div class="mb-3">
+                                                    <label for="etat" class="form-label">Nouvel État :</label>
+                                                    <select name="etat" id="etat" class="form-select">
+                                                        <option value="fonctionnel">Fonctionnel</option>
+                                                        <option value="remplacé">Remplacé</option>
+                                                    </select>
+                                                </div>
+                                                <button type="submit" class="btn btn-success w-100">
+                                                    <i class="bi bi-check-circle"></i> Confirmer
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div> <!-- Fin de la col-md-4 -->
+            {% endfor %}
+        {% else %}
+            <div class="col-12 text-center">
+                <h5 class="text-muted">Aucun actif trouvé pour "<strong>{{ query }}</strong>".</h5>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

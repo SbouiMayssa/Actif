@@ -1,0 +1,77 @@
+{% extends 'template.html.twig' %}
+
+{% block pageName %}
+    <title>Trier les actifs</title>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Trier les Actifs</h1>
+
+    <div class="mb-4 text-center">
+        <a href="{{ path('sort_actif', {'criteria': 'type'}) }}" class="btn btn-outline-primary mx-2">Trier par Type</a>
+        <a href="{{ path('sort_actif', {'criteria': 'date'}) }}" class="btn btn-outline-primary mx-2">Trier par Date d'Acquisition</a>
+    </div>
+
+    <div class="row">
+        {% if actifs is not empty %}
+            {% for actif in actifs %}
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                {{ actif.nom }}
+                                {% if actif.type == 'Ordinateur' %}
+                                    <i class="bi bi-laptop"></i>
+                                {% elseif actif.type == 'Imprimante' %}
+                                    <i class="bi bi-printer"></i>
+                                {% elseif actif.type == 'Serveur' %}
+                                    <i class="bi bi-hdd-network"></i>
+                                {% endif %}
+                            </h5>
+                            <p class="card-text"><strong>Type :</strong> {{ actif.type }}</p>
+                            <p class="card-text"><strong>État :</strong>
+                                {% if actif.etat == 'en panne' %}
+                                    <span class="badge bg-danger">En Panne</span>
+                                {% elseif actif.etat == 'fonctionnel' %}
+                                    <span class="badge bg-success">Fonctionnel</span>
+                                {% elseif actif.etat == 'remplacé' %}
+                                    <span class="badge bg-warning">Remplacé</span>
+                                {% endif %}
+                            </p>
+                            <p class="card-text"><strong>Numéro de série :</strong> {{ actif.numSerie }}</p>
+                            <p class="card-text"><strong>Date d'Acquisition :</strong> {{ actif.dateAcquisation|date('d/m/Y') }}</p>
+                            
+                            <p class="card-text"><strong>Emplacement :</strong> 
+                                {{ actif.location ? actif.location.getAdresse ~ ', Bâtiment ' ~ actif.location.getBatiment ~ ', Étage ' ~ actif.location.getNumEtage : 'Non défini' }}
+                            </p>
+                            
+                            <p class="card-text"><strong>Assigné à :</strong> 
+                                {% if actif.userAssigned is empty %}
+                                    Non assigné
+                                {% else %}
+                                    {% for user in actif.userAssigned %}
+                                        {{ user.nom }} {{ user.prenom }}{% if not loop.last %}, {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                            </p>
+
+                            <div class="d-flex justify-content-between">
+                                <a href="{{ path('actif_edit', {'id': actif.id}) }}" class="btn btn-primary btn-sm">Modifier</a>
+                                <form method="post" action="{{ path('actif_delete', {'id': actif.id}) }}" onsubmit="return confirm('Voulez-vous vraiment supprimer cet actif ?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ actif.id) }}">
+                                    <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12 text-center">
+                <p class="text-muted">Aucun actif trouvé.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

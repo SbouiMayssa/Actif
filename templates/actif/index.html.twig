@@ -1,69 +1,86 @@
-
-
 {% extends 'template.html.twig' %}
 
 {% block pageName %}
-<title>Statistiques</title>
+    <title>Statistiques</title>
 {% endblock %}
 
 {% block body %}
 <div class="container mt-5 text-center">
-    <h1 class="mb-4">les Statistiques</h1>
-        
-        <!-- Statistiques des actifs -->
-        <div class="row">
-            <div class="col-md-4">
-                <div class="card" style="background: linear-gradient(to right, #4e73df, #1e3c72); color: white;">
-                    <div class="card-body">
-                        <h4 class="card-title">Actifs Fonctionnels</h4>
-                        <p>{{ active_assets }} actifs</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card" style="background: linear-gradient(to right, #56c3d2, #2196f3); color: white;">
-                    <div class="card-body">
-                        <h4 class="card-title">Actifs en Panne</h4>
-                        <p>{{ faulty_assets }} actifs</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card" style="background: linear-gradient(to right, #3f97c2, #2c587a); color: white;">
-                    <div class="card-body">
-                        <h4 class="card-title">Actifs Remplacés</h4>
-                        <p>{{ replaced_assets }} actifs</p>
-                    </div>
+    <h1 class="mb-5 fw-bold" style="color: #2c3e50; font-family: 'Segoe UI', sans-serif;">Statistiques</h1>
+    
+    <!-- Statistiques des actifs -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card shadow-sm" style="background: linear-gradient(to right, #4e73df, #1e3c72); color: white; border: none;">
+                <div class="card-body">
+                    <h4 class="card-title fw-semibold">Actifs Fonctionnels</h4>
+                    <p class="fs-4">{{ active_assets }} actifs</p>
                 </div>
             </div>
         </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm" style="background: linear-gradient(to right, #56c3d2, #2196f3); color: white; border: none;">
+                <div class="card-body">
+                    <h4 class="card-title fw-semibold">Actifs en Panne</h4>
+                    <p class="fs-4">{{ faulty_assets }} actifs</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm" style="background: linear-gradient(to right, #3f97c2, #2c587a); color: white; border: none;">
+                <div class="card-body">
+                    <h4 class="card-title fw-semibold">Actifs Remplacés</h4>
+                    <p class="fs-4">{{ replaced_assets }} actifs</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- Search Bar and Employee Actifs -->
+    <div class="card shadow-sm rounded-3 p-4">
+        <h2 class="mb-4 fw-semibold" style="color: #2c3e50;">Rechercher les Actifs d’un Employé</h2>
         
-        
+        <!-- Search Form -->
+        <form method="get" action="{{ path('dashboard') }}" class="mb-4">
+            <div class="input-group w-50 mx-auto" style="max-width: 400px;">
+                <input type="text" name="employee_search" class="form-control rounded-start" placeholder="Nom de l’employé..." value="{{ search_query ?? '' }}" style="border: none; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);">
+                <button class="btn btn-primary rounded-end" type="submit" style="transition: background-color 0.3s;">
+                    <i class="bi bi-search"></i> Rechercher
+                </button>
+            </div>
+        </form>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        const ctx = document.getElementById('assetsChart').getContext('2d');
-        const assetsChart = new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: ['Actifs Fonctionnels', 'Actifs en Panne', 'Actifs Remplacés'],
-                datasets: [{
-                    label: 'Répartition des Actifs',
-                    //data: [{{ active_assets }}, {{ faulty_assets }}, {{ replaced_assets }}],
-                    backgroundColor: [
-                        'rgba(78, 115, 223, 0.7)',   // Bleu foncé (dégradé)
-                        'rgba(86, 195, 210, 0.7)',   // Bleu turquoise
-                        'rgba(63, 151, 194, 0.7)'    // Bleu acier
-                    ],
-                    borderColor: [
-                        'rgba(78, 115, 223, 1)',  // Bleu foncé
-                        'rgba(86, 195, 210, 1)',  // Bleu turquoise
-                        'rgba(63, 151, 194, 1)'   // Bleu acier
-                    ],
-                    borderWidth: 1
-                }]
-            }
-        });
-    </script>
+        <!-- Display Employee and Actifs -->
+        {% if employee is defined and employee is not null %}
+            <div class="text-start">
+                <h3 class="mb-3 fw-semibold" style="color: #2c3e50;">Actifs assignés à {{ employee.nom }} {{ employee.prenom }}</h3>
+                {% if employee.actifs|length > 0 %}
+                    <ul class="list-group">
+                        {% for actif in employee.actifs %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ actif.nom }} ({{ actif.numSerie }})
+                                <span class="badge rounded-pill {% if actif.etat == 'fonctionnel' %}bg-success{% elseif actif.etat == 'en panne' %}bg-danger{% else %}bg-warning{% endif %}">
+                                    {{ actif.etat|capitalize }}
+                                </span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">Aucun actif assigné à cet employé.</p>
+                {% endif %}
+            </div>
+        {% elseif search_query is defined and search_query != '' %}
+            <p class="text-muted">Aucun employé trouvé avec le nom "{{ search_query }}".</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        .card:hover { transform: translateY(-5px); transition: transform 0.3s; }
+        .btn-primary:hover { background-color: #0056b3; }
+        .list-group-item { transition: background-color 0.2s; }
+        .list-group-item:hover { background-color: #f8f9fa; }
+    </style>
 {% endblock %}

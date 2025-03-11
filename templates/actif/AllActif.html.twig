@@ -1,3 +1,4 @@
+{# actif/AllActif.html.twig #}
 {% extends 'template.html.twig' %}
 
 {% block pageName %}
@@ -7,47 +8,41 @@
 {% block body %}
     <div class="container mt-4">
         <h1 class="text-center">Liste des Actifs</h1>
-<!-- Barre de recherche, filtres et actions -->
-<div class="d-flex align-items-center flex-wrap gap-3 mb-4">
-    <!-- Recherche et filtres à gauche -->
-    <div class="d-flex align-items-center gap-3 flex-grow-1">
-        <!-- Barre de recherche (agrandie) -->
-        <form method="get" action="{{ path('actif_s') }}" class="d-flex flex-grow-1">
-            <div class="input-group shadow-sm w-50">
-                <input type="text" name="q" class="form-control" placeholder="Rechercher par numéro de série..." value="{{ app.request.query.get('q') }}">
-                <button class="btn btn-primary" type="submit">
-                    <i class="bi bi-search"></i> Rechercher
-                </button>
+        <!-- Barre de recherche, filtres et actions -->
+        <div class="d-flex align-items-center flex-wrap gap-3 mb-4">
+            <!-- Recherche et filtres à gauche -->
+            <div class="d-flex align-items-center gap-3 flex-grow-1">
+                <!-- Barre de recherche (agrandie) -->
+                <form method="get" action="{{ path('actif_s') }}" class="d-flex flex-grow-1">
+                    <div class="input-group shadow-sm w-50">
+                        <input type="text" name="q" class="form-control" placeholder="Rechercher par numéro de série..." value="{{ app.request.query.get('q') }}">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bi bi-search"></i> Rechercher
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Filtres -->
+                <form method="get" action="{{ path('actif_s') }}">
+                    <select name="etat" class="form-select" onchange="this.form.submit()">
+                        <option value="">Tous les états</option>
+                        <option value="fonctionnel">Fonctionnel</option>
+                        <option value="en panne">En panne</option>
+                        <option value="remplacé">Remplacé</option>
+                    </select>
+                </form>
             </div>
-        </form>
 
-        <!-- Filtres -->
-        <form method="get" action="{{ path('actif_s') }}">
-            <select name="etat" class="form-select" onchange="this.form.submit()">
-                <option value="">Tous les états</option>
-                <option value="fonctionnel">Fonctionnel</option>
-                <option value="en panne">En panne</option>
-                <option value="remplacé">Remplacé</option>
-            </select>
-        </form>
-    </div>
-
-    <!-- Import/Export à droite -->
-    <div class="ms-auto d-flex gap-2">
-        <a href="{{ path('actif_import') }}" class="btn btn-warning">
-            <i class="fas fa-file-import"></i> Importer
-        </a>
-        <a href="{{ path('actif_export') }}" class="btn btn-success">
-            <i class="fas fa-file-excel"></i> Exporter
-        </a>
-    </div>
-</div>
-
-
-
-
-         
-
+            <!-- Import/Export à droite -->
+            <div class="ms-auto d-flex gap-2">
+                <a href="{{ path('actif_import') }}" class="btn btn-warning">
+                    <i class="fas fa-file-import"></i> Importer
+                </a>
+                <a href="{{ path('actif_export') }}" class="btn btn-success">
+                    <i class="fas fa-file-excel"></i> Exporter
+                </a>
+            </div>
+        </div>
 
         <!-- Flash messages -->
         <div class="container-fluid">
@@ -63,9 +58,9 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             {% endfor %}
-            
         </div>
-<hr>
+        <hr>
+
         <!-- Tableau des Actifs -->
         <div class="table-responsive shadow-sm rounded">
             <table class="table table-bordered table-hover align-middle">
@@ -94,35 +89,39 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <div class="btn-group">
-                                    <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#actifDetailModal{{ actif.id }}"class="btn btn-info btn-sm" >
-                                        <i class="fas fa-eye">  Voir Détail</i></button>
-
-                                    <button type="button" class="btn btn-secondary btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <span class="visually-hidden">Toggle Dropdown</span>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="btn-group">
+                                        <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#actifDetailModal{{ actif.id }}">
+                                            <i class="fas fa-eye"></i> Voir Détail
+                                        </button>
+                                        <button type="button" class="btn btn-info btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <span class="visually-hidden">Toggle Dropdown</span>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a class="dropdown-item" href="{{ path('actif_edit', {'id': actif.id}) }}">
+                                                    <i class="fas fa-edit"></i> Modifier
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="{{ path('actif_historique', {'id': actif.id}) }}">
+                                                    <i class="fas fa-calendar-alt"></i> Historique
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <form method="post" action="{{ path('actif_delete', {'id': actif.id}) }}" onsubmit="return confirm('Voulez-vous vraiment supprimer cet actif ?');">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ actif.id) }}">
+                                                    <button type="submit" class="dropdown-item text-danger">
+                                                        <i class="fas fa-trash"></i> Archiver
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <!-- Assign Employee Button with Small Space -->
+                                    <button class="btn btn-primary btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#assignEmployeeModal{{ actif.id }}">
+                                        <i class="fas fa-user-plus"></i> Assigner
                                     </button>
-                                    <ul class="dropdown-menu">
-                                        <li>
-                                            <a class="dropdown-item" href="{{ path('actif_edit', {'id': actif.id}) }}" class="btn btn-warning btn-sm">
-                                                <i class="fas fa-edit"> Modifier</i>
-                                            </a>
-                                        </li>
-
-                                        <li>
-                                            <a class="dropdown-item" href="{{ path('actif_historique', {'id': actif.id}) }}"class="btn btn-secondary btn-sm">
-                                                <i class="fas fa-calendar-alt"> Historique</i>
-                                            </a>
-                                        </li>
-
-
-                                        <li>
-                                            <form method="post" action="{{ path('actif_delete', {'id': actif.id}) }}" onsubmit="return confirm('Voulez-vous vraiment supprimer cet actif ?');">
-                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ actif.id) }}">
-                                                <button type="submit" class="dropdown-item text-danger">
-                                                    <i class="fas fa-trash"></i> Archiver</button>
-                                            </form>
-                                        </li>
-                                    </ul>
                                 </div>
                             </td>
                         </tr>
@@ -169,6 +168,8 @@
                                 <p><strong>Employé Assigné :</strong> 
                                     {% for employer in actif.UserAssigned %}
                                         {{ employer.nom }} {{ employer.prenom }}{% if not loop.last %}, {% endif %}
+                                    {% else %}
+                                        Aucun employé assigné
                                     {% endfor %}
                                 </p>
                             </div>
@@ -179,7 +180,38 @@
                     </div>
                 </div>
             </div>
-            
+        </div>
+    {% endfor %}
+
+    <!-- Modals pour assigner un employé -->
+    {% for actif in actifs %}
+        <div class="modal fade" id="assignEmployeeModal{{ actif.id }}" tabindex="-1" aria-labelledby="assignEmployeeModalLabel{{ actif.id }}" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="assignEmployeeModalLabel{{ actif.id }}">Assigner un Employé à {{ actif.nom }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="post" action="{{ path('actif_assign_employee', {'id': actif.id}) }}">
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="employee_select_{{ actif.id }}" class="form-label">Sélectionner un Employé</label>
+                                <select name="employee" id="employee_select_{{ actif.id }}" class="form-select" required>
+                                    <option value="">-- Choisir un employé --</option>
+                                    {% for employee in employees %}
+                                        <option value="{{ employee.id }}">{{ employee.nom }} {{ employee.prenom }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                            <button type="submit" class="btn btn-primary">Assigner</button>
+                        </div>
+                        <input type="hidden" name="_token" value="{{ csrf_token('assign' ~ actif.id) }}">
+                    </form>
+                </div>
+            </div>
         </div>
     {% endfor %}
 {% endblock %}

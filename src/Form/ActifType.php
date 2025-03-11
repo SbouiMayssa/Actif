@@ -85,16 +85,7 @@ class ActifType extends AbstractType
             ])
 
 
-            ->add('userAssigned', EntityType::class, [
-                'class' => Employer::class,
-                'choice_label' => function(Employer $employer) {
-                    return $employer->getPrenom() . ' ' . $employer->getNom();},
-                'multiple' => true,
-                'expanded' => false, 
-                'label' => 'Employés assignés',
-                'attr' => ['class' => 'select2'],
-            ])
-
+            
             ->add('location', EntityType::class, [
                 'class' => Emplacement::class,
                 'choice_label' => function(Emplacement $emplacement) {

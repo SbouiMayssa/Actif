@@ -14,8 +14,6 @@
             <div class="col-md-6">{{ form_row(form.numSerie) }}</div>
             <div class="col-md-6">{{ form_row(form.type) }}</div>
             <div class="col-md-6">{{ form_row(form.etat) }}</div>
-            <div class="col-md-6">{{ form_row(form.userAssigned) }}
- </div>
             <div class="col-md-6">{{ form_row(form.dateAcquisation) }}</div>
             <div class="col-md-6">{{ form_row(form.location) }}</div>
         </div>
@@ -24,14 +22,14 @@
         {{ action }} <!-- This will display either "Modifier" or "Ajouter" based on the action -->
     </button>
         
-
     {{ form_end(form) }}
 </div>
 {% endblock %}
+
 {% block JavaScript %}
 <script>
     $(document).ready(function() {
-    $('select2').select2();
-});
+        $('select2').select2();
+    });
 </script>
 {% endblock %}

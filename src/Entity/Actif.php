@@ -46,7 +46,7 @@ class Actif
     #[ORM\JoinColumn(nullable: false)]
     private ?User $createdBy = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255,nullable: true)]
     private ?string $etat = null;
 
     #[ORM\Column(nullable: true)]

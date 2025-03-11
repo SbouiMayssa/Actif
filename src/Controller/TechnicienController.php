@@ -23,53 +23,40 @@ final class TechnicienController extends AbstractController
     public function index(ActifRepository $actifRepository): Response
     {
         $actifs = $actifRepository->findActifsEnPanne();
-        return $this->render('technicien/SearchActif.html.twig', [
+        return $this->render('technicien/index.html.twig', [
             'actifs' => $actifs,
         ]);
     }  
-
-
-
-    #[Route('/pannes', name: 'actif_panne')]
-    public function ActifPanne(ActifRepository $actifRepository): Response
-    {
-        $actifs = $actifRepository->findActifsEnPanne();
-        return $this->render('technicien/ActifPanne.html.twig', [
-            'actifs' => $actifs,
-        ]);
-    } 
-    
-    
 
     #[Route('/updatetat/{id}', name: 'update_etat', methods: ['POST'])]
     public function updateEtat(Request $request, Actif $actif, EntityManagerInterface $em): Response
     { 
         $etat = $request->request->get('etat');
 
-        if ($etat) {
-            $actif->setEtat($etat);
-            $em->flush();
+        if ($etat==null) {
+            $this->addFlash('error', "L'état ne peut pas être vide.");
+            return $this->redirectToRoute('search_actif');
+        }
             
- // Enregistrer l'historique
- $historique = new Historique();
- $historique->setActif($actif);
- $historique->setAction('Création');
- $historique->setDateAction(new \DateTimeImmutable());
- $historique->setActionneur($this->getUser());
- $historique->setDetails(['message' => "Actif créé"]);
+            $actif->setEtat($etat);
+            // $em->persist($actif);
+             $em->flush();
+            $historique = new Historique();
+            $historique->setActif($actif);
+            $historique->setAction('Modification');
+            $historique->setDateAction(new \DateTimeImmutable());
+            $historique->setActionneur($this->getUser());
+            $historique->setDetails(['message' => "Actif modifié"]);
+            $historique->setEtat($actif->getEtat());
 
- $em->persist($historique);
- $em->flush();
+            $em->persist($historique);
+            $em->flush();
 
             $this->addFlash('success', "L'état de l'actif a été mis à jour avec succès.");
-        }
+        
 
-        return $this->redirectToRoute('search_actif');
+        return $this->redirectToRoute('actif');
     }
-
-
-
-
 
 
     #[Route('/search', name: 'search_actif', methods: ['GET'])]
@@ -85,7 +72,7 @@ final class TechnicienController extends AbstractController
             $actifs = $actifRepository->searchByNumSerie($query);
         }
 
-        return $this->render('technicien/SearchActif.html.twig', [
+        return $this->render('technicien/index.html.twig', [
             'actifs' => $actifs,
             'query' => $query,
         ]);
@@ -114,12 +101,6 @@ final class TechnicienController extends AbstractController
             'actifs' => $actifs,
         ]);
     }
-
-
-
-
-
-
 
 }
     

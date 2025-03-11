@@ -27,7 +27,7 @@ final class ActifController extends AbstractController
 {
     private $actifRepository;
 
-    // Injection du repository dans le contrôleur via le constructeur
+    
     public function __construct(ActifRepository $actifRepository)
     {
         $this->actifRepository = $actifRepository;
@@ -40,10 +40,7 @@ final class ActifController extends AbstractController
             'actifs' => $Actif->findBy(['DeletedAt' => null]),
         ]);
     }
-
-
-
-   
+  
 
     #[Route('/actif/add', name: 'add_actif')]
     public function AddAsset(EntityManagerInterface $manager, Request $request)
@@ -65,6 +62,7 @@ final class ActifController extends AbstractController
                 $historique->setDateAction(new \DateTimeImmutable());
                 $historique->setActionneur($this->getUser());
                 $historique->setDetails(['message' => "Actif créé"]);
+                $historique->setEtat($actif->getEtat());    
 
                 $manager->persist($historique);
                 $manager->flush();
@@ -73,6 +71,7 @@ final class ActifController extends AbstractController
                 return $this->redirectToRoute('all_actif');
             } catch (UniqueConstraintViolationException $e) {
                 $this->addFlash('error', "Erreur : Un actif avec ce numéro de série existe déjà !");
+                return $this->redirectToRoute('all_actif');
             } catch (\Exception $e) {
                 $this->addFlash('error', "Une erreur est survenue lors de l'ajout de l'actif.");
             }
@@ -83,29 +82,6 @@ final class ActifController extends AbstractController
             'action' => 'Ajouter',
         ]);
     }
-
-
-
-    #[Route('/actif/sort/{criteria}', name: 'sort_actif', methods: ['GET'])]
-    public function sort(string $criteria, ActifRepository $actifRepository): Response
-    {
-         switch ($criteria) {
-                case 'type':
-                    $actifs = $actifRepository->findAllSortedByType();
-                    break;
-                case 'date':
-                    $actifs = $actifRepository->findAllSortedByDateAcquisation();
-                    break;
-                default:
-                    $actifs = $actifRepository->findActifsEnPanne();
-            }
-    
-            return $this->render('actif/sort.html.twig', [
-                'actifs' => $actifs,
-            ]);
-        }
-
-
 
     #[Route('/actif/edit/{id<\d+>}', name:'actif_edit')]
     public function editActif(EntityManagerInterface $manager, Request $request, Actif $actif, $id, Security $security){
@@ -143,41 +119,42 @@ final class ActifController extends AbstractController
         ]);
     }
 
-
     #[Route('/actif/delete/{id}', name: 'actif_delete')]
-public function delete(Actif $actif, ActifRepository $actifRepository,$id,EntityManagerInterface $manager): Response
-{
-
-   $actif=$actifRepository->find($id);
-
-    if(!$actif){
-        $this->addFlash('error',"Actif n' existe pas ");
+    public function delete(Actif $actif, ActifRepository $actifRepository,$id,EntityManagerInterface $manager): Response
+    {
+    
+       $actif=$actifRepository->find($id);
+    
+        if(!$actif){
+            $this->addFlash('error',"Actif n' existe pas ");
+            return $this->redirectToRoute('all_actif');
+        }
+        $actif->setDeletedAt(new \DateTimeImmutable()); 
+        $manager->flush();
+    
+        $historique = new Historique();
+        $historique->setActif($actif);
+        $historique->setAction('Suppression');
+        $historique->setDateAction(new \DateTimeImmutable());
+        $historique->setActionneur($this->getUser());
+        $historique->setDetails(['message' => "Actif archivé"]);
+        $historique->setEtat($actif->getEtat());
+        
+        $manager->persist($historique);
+        $manager->flush();
+        
+    
+        $this->addFlash('success', "L'actif a été archivé avec succès.");
         return $this->redirectToRoute('all_actif');
     }
-    $actif->setDeletedAt(new \DateTimeImmutable()); 
-    $manager->flush();
 
-    $historique = new Historique();
-    $historique->setActif($actif);
-    $historique->setAction('Suppression');
-    $historique->setDateAction(new \DateTimeImmutable());
-    $historique->setActionneur($this->getUser());
-    $historique->setDetails(['message' => "Actif archivé"]);
-    $historique->setEtat($actif->getEtat());
-    
-    $manager->persist($historique);
-    $manager->flush();
-    
 
-    $this->addFlash('success', "L'actif a été archivé avec succès.");
-    return $this->redirectToRoute('all_actif');
-}
 
-#[Route('/actif/search', name: 'actif_s', methods: ['GET'])]
+    #[Route('/actif/search', name: 'actif_s', methods: ['GET'])]
     public function SearchActif(Request $request, ActifRepository $actifRepository): Response
     {
         $query = $request->query->get('q', '');
-        $actifs = []; // Ajoutez cela pour initialiser la variable
+        $actifs = []; 
 
         if (!empty($query)) {
             $actifs = $actifRepository->searchByNumSerieActif($query);
@@ -185,10 +162,29 @@ public function delete(Actif $actif, ActifRepository $actifRepository,$id,Entity
 
         return $this->render('actif/searchActif.html.twig', [
             'actifs' => $actifs,
-            'query' => $query, // Assurez-vous de transmettre la valeur de la recherche
+            'query' => $query, 
         ]);
     }
+
+
+    #[Route('/actif/sort/{criteria}', name: 'sort_actif', methods: ['GET'])]
+    public function sort(string $criteria, ActifRepository $actifRepository): Response
+    {
+         switch ($criteria) {
+                case 'type':
+                    $actifs = $actifRepository->findAllSortedByType();
+                    break;
+                case 'date':
+                    $actifs = $actifRepository->findAllSortedByDateAcquisation();
+                    break;
+                default:
+                    $actifs = $actifRepository->findActifsEnPanne();
+            }
     
+            return $this->render('actif/sort.html.twig', [
+                'actifs' => $actifs,
+            ]);
+        }
 
 
     #[Route('/filter/{etat}', name: 'actif_filter', methods: ['GET'])]
@@ -201,31 +197,15 @@ public function delete(Actif $actif, ActifRepository $actifRepository,$id,Entity
         ]);
     }
 
-    #[Route('/actif/etat/{id<\d+>}', name: 'actif_etat')]
-public function etatActif(Actif $actif): Response
-{
-    return $this->render('actif/etat.html.twig', [
-        'actif' => $actif,
-    ]);
-}
 
-#[Route('/actif/archive', name: 'actif_archives', methods: ['GET'])]
-public function showArchivedActifs(ActifRepository $actifRepository): Response
-{
-    $actifs = $actifRepository->findAllArchived(); // Récupérer les actifs archivés
 
-    return $this->render('actif/archive.html.twig', [
-        'actifs' => $actifs,
-    ]);
-}
-
-#[Route('/dashboard', name: 'dashboard')]
+    #[Route('/dashboard', name: 'dashboard')]
     public function dashboard(): Response
     {
         // Récupérer les statistiques des actifs
-        $activeAssets = $this->actifRepository->countActiveAssets();  // Nombre d'actifs fonctionnels
-        $faultyAssets = $this->actifRepository->countFaultyAssets();  // Nombre d'actifs en panne
-        $replacedAssets = $this->actifRepository->countReplacedAssets(); // Nombre d'actifs remplacés
+        $activeAssets = $this->actifRepository->countActiveAssets();  
+        $faultyAssets = $this->actifRepository->countFaultyAssets();  
+        $replacedAssets = $this->actifRepository->countReplacedAssets(); 
 
         // Retourner les données à la vue
         return $this->render('actif/index.html.twig', [
@@ -247,5 +227,21 @@ public function historique(Actif $actif, HistoriqueRepository $historiqueReposit
     ]);
 }
 
+
+    
+
+#[Route('/actif/archive', name: 'actif_archives', methods: ['GET'])]
+public function showArchivedActifs(ActifRepository $actifRepository): Response
+{
+    $actifs = $actifRepository->findAllArchived(); // Récupérer les actifs archivés
+
+    return $this->render('actif/archive.html.twig', [
+        'actifs' => $actifs,
+    ]);
+}
+
+
+
+    
 
 }

@@ -7,10 +7,13 @@
 {% block body %}
     <div class="container mt-4">
         <h1 class="text-center">Liste des Actifs</h1>
-
-        <!-- Barre de recherche -->
-        <form method="get" action="{{ path('actif_s') }}" class="mb-4">
-            <div class="input-group shadow-sm">
+<!-- Barre de recherche, filtres et actions -->
+<div class="d-flex align-items-center flex-wrap gap-3 mb-4">
+    <!-- Recherche et filtres à gauche -->
+    <div class="d-flex align-items-center gap-3 flex-grow-1">
+        <!-- Barre de recherche (agrandie) -->
+        <form method="get" action="{{ path('actif_s') }}" class="d-flex flex-grow-1">
+            <div class="input-group shadow-sm w-50">
                 <input type="text" name="q" class="form-control" placeholder="Rechercher par numéro de série..." value="{{ app.request.query.get('q') }}">
                 <button class="btn btn-primary" type="submit">
                     <i class="bi bi-search"></i> Rechercher
@@ -18,20 +21,51 @@
             </div>
         </form>
 
-        <!-- Flash messages -->
-        {% for message in app.session.flashbag.get('success') %}
-            <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        {% endfor %}
-        {% for message in app.session.flashbag.get('error') %}
-            <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        {% endfor %}
+        <!-- Filtres -->
+        <form method="get" action="{{ path('actif_s') }}">
+            <select name="etat" class="form-select" onchange="this.form.submit()">
+                <option value="">Tous les états</option>
+                <option value="fonctionnel">Fonctionnel</option>
+                <option value="en panne">En panne</option>
+                <option value="remplacé">Remplacé</option>
+            </select>
+        </form>
+    </div>
 
+    <!-- Import/Export à droite -->
+    <div class="ms-auto d-flex gap-2">
+        <a href="{{ path('actif_import') }}" class="btn btn-warning">
+            <i class="fas fa-file-import"></i> Importer
+        </a>
+        <a href="{{ path('actif_export') }}" class="btn btn-success">
+            <i class="fas fa-file-excel"></i> Exporter
+        </a>
+    </div>
+</div>
+
+
+
+
+         
+
+
+        <!-- Flash messages -->
+        <div class="container-fluid">
+            {% for message in app.session.flashbag.get('success') %}
+                <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+            {% for message in app.session.flashbag.get('error') %}
+                <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+            
+        </div>
+<hr>
         <!-- Tableau des Actifs -->
         <div class="table-responsive shadow-sm rounded">
             <table class="table table-bordered table-hover align-middle">
@@ -61,17 +95,31 @@
                             </td>
                             <td>
                                 <div class="btn-group">
-                                    <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#actifDetailModal{{ actif.id }}">Voir Détail</button>
+                                    <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#actifDetailModal{{ actif.id }}"class="btn btn-info btn-sm" >
+                                        <i class="fas fa-eye">  Voir Détail</i></button>
+
                                     <button type="button" class="btn btn-secondary btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
                                         <span class="visually-hidden">Toggle Dropdown</span>
                                     </button>
                                     <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="{{ path('actif_edit', {'id': actif.id}) }}">Modifier</a></li>
-                                        <li><a class="dropdown-item" href="{{ path('actif_historique', {'id': actif.id}) }}">Historique</a></li>
+                                        <li>
+                                            <a class="dropdown-item" href="{{ path('actif_edit', {'id': actif.id}) }}" class="btn btn-warning btn-sm">
+                                                <i class="fas fa-edit"> Modifier</i>
+                                            </a>
+                                        </li>
+
+                                        <li>
+                                            <a class="dropdown-item" href="{{ path('actif_historique', {'id': actif.id}) }}"class="btn btn-secondary btn-sm">
+                                                <i class="fas fa-calendar-alt"> Historique</i>
+                                            </a>
+                                        </li>
+
+
                                         <li>
                                             <form method="post" action="{{ path('actif_delete', {'id': actif.id}) }}" onsubmit="return confirm('Voulez-vous vraiment supprimer cet actif ?');">
                                                 <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ actif.id) }}">
-                                                <button type="submit" class="dropdown-item text-danger">Supprimer</button>
+                                                <button type="submit" class="dropdown-item text-danger">
+                                                    <i class="fas fa-trash"></i> Archiver</button>
                                             </form>
                                         </li>
                                     </ul>
@@ -131,6 +179,7 @@
                     </div>
                 </div>
             </div>
+            
         </div>
     {% endfor %}
 {% endblock %}

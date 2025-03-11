@@ -49,10 +49,6 @@ class ActifRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-
-
-
-    //  Obtenir les actifs en panne
      public function findActifsEnPanne(): array
      {
          return $this->createQueryBuilder('a')
@@ -63,7 +59,7 @@ class ActifRepository extends ServiceEntityRepository
              ->getResult();
      }
  
-     //  Trier les actifs par type
+     
      public function findAllSortedByType(): array
      {
          return $this->createQueryBuilder('a')
@@ -73,7 +69,7 @@ class ActifRepository extends ServiceEntityRepository
              ->getResult();
      }
  
-     //  Trier les actifs par date d’acquisition (du plus récent au plus ancien)
+   
      public function findAllSortedByDateAcquisation(): array
      {
          return $this->createQueryBuilder('a')
@@ -130,6 +126,7 @@ public function findActifsEnPanneSortedByDateAcquisation(): array
          return $this->createQueryBuilder('a')
              ->select('COUNT(a)')
              ->where('a.etat = :etat')
+             ->andWhere('a.DeletedAt IS NULL')  
              ->setParameter('etat', 'fonctionnel')
              ->getQuery()
              ->getSingleScalarResult();
@@ -140,6 +137,7 @@ public function findActifsEnPanneSortedByDateAcquisation(): array
         return $this->createQueryBuilder('a')
             ->select('COUNT(a)')
             ->where('a.etat = :etat')
+            ->andWhere('a.DeletedAt IS NULL')
             ->setParameter('etat', 'en panne')
             ->getQuery()
             ->getSingleScalarResult();
@@ -150,6 +148,7 @@ public function findActifsEnPanneSortedByDateAcquisation(): array
         return $this->createQueryBuilder('a')
             ->select('COUNT(a)')
             ->where('a.etat = :etat')
+            ->andWhere('a.DeletedAt IS NULL')
             ->setParameter('etat', 'remplacé')
             ->getQuery()
             ->getSingleScalarResult();

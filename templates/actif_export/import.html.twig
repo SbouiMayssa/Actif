@@ -1,0 +1,15 @@
+{# templates/actif_import/import.html.twig #}
+{% extends 'template.html.twig' %}
+
+{% block body %}
+    <div class="container mt-4">
+        <h1 class="text-center">Importer des Actifs</h1>
+
+        {{ form_start(form) }}
+            <div class="mb-3">
+                {{ form_row(form.file) }}
+            </div>
+            <button type="submit" class="btn btn-primary">Importer</button>
+        {{ form_end(form) }}
+    </div>
+{% endblock %}

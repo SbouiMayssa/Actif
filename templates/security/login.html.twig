@@ -1,4 +1,4 @@
-{% extends 'templateLogin.html.twig' %}
+{% extends 'template.html.twig' %}
 
 {% block pageName %}
     <title> Page Login</title>
@@ -28,7 +28,7 @@
                         </div>
 
                         {% if error %}
-                            <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                            <div class="alert alert-danger">login ou mot de passe incorrect </div>
                         {% endif %}
 
                        

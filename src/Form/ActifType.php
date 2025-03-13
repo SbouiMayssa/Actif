@@ -3,17 +3,16 @@
 namespace App\Form;
 
 use App\Entity\Actif;
+use App\Entity\Employer;
+use App\Entity\Emplacement;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
-use App\Entity\Employer;
-use App\Entity\Emplacement;
 
 class ActifType extends AbstractType
 {
@@ -83,9 +82,6 @@ class ActifType extends AbstractType
                     ])
                 ]
             ])
-
-
-            
             ->add('location', EntityType::class, [
                 'class' => Emplacement::class,
                 'choice_label' => function(Emplacement $emplacement) {
@@ -99,6 +95,17 @@ class ActifType extends AbstractType
                 'constraints' => [
                     new Assert\NotBlank(['message' => 'Veuillez sélectionner un emplacement'])
                 ]
+            ])
+            ->add('UserAssigned', EntityType::class, [ // Use the exact property name from the entity
+                'class' => Employer::class,
+                'choice_label' => function (Employer $employer) {
+                    return $employer->getNom() . ' ' . $employer->getPrenom();
+                },
+                'label' => 'Employés Assignés',
+                'expanded' => false, // Set to true for checkboxes instead of a dropdown
+                'multiple' => true,  // Allow multiple selections
+                'attr' => ['class' => 'form-select'],
+                'required' => false, // Set to true if at least one employee is mandatory
             ]);
     }
 

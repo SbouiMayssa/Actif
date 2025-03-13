@@ -79,20 +79,25 @@ final class ActifController extends AbstractController
     }
 
     #[Route('/actif/edit/{id<\d+>}', name: 'actif_edit')]
-    public function editActif(EntityManagerInterface $manager, Request $request, Actif $actif, $id, Security $security): Response
-    {
+    public function editActif(
+        EntityManagerInterface $manager,
+        Request $request,
+        Actif $actif,
+        $id,
+        Security $security
+    ): Response {
         if ($actif->getDeletedAt() !== null) {
             $this->addFlash('error', "L'actif $id est archivé et ne peut pas être modifié.");
             return $this->redirectToRoute('all_actif');
         }
-
+    
         $form = $this->createForm(ActifType::class, $actif);
         $form->handleRequest($request);
-
+    
         if ($form->isSubmitted() && $form->isValid()) {
             $manager->persist($actif);
             $manager->flush();
-
+    
             $historique = new Historique();
             $historique->setActif($actif);
             $historique->setAction('Modification');
@@ -100,21 +105,20 @@ final class ActifController extends AbstractController
             $historique->setActionneur($this->getUser());
             $historique->setDetails(['message' => "Actif modifié"]);
             $historique->setEtat($actif->getEtat());
-
+    
             $manager->persist($historique);
             $manager->flush();
-
+    
             $this->addFlash('success', "L'actif de $id est modifié avec succès");
             return $this->redirectToRoute('all_actif');
         }
-
+    
         return $this->render('actif/edit.html.twig', [
             'form' => $form->createView(),
             'actif' => $actif,
             'action' => 'Modifier',
         ]);
     }
-
     #[Route('/actif/delete/{id}', name: 'actif_delete')]
     public function delete(Actif $actif, ActifRepository $actifRepository, $id, EntityManagerInterface $manager): Response
     {

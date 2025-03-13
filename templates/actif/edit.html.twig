@@ -23,9 +23,9 @@
                 <div class="col-md-6">{{ form_row(form.numSerie) }}</div>
                 <div class="col-md-6">{{ form_row(form.type) }}</div>
                 <div class="col-md-6">{{ form_row(form.etat) }}</div>
-                <div class="col-md-6">{{ form_row(form.userAssigned) }}</div>
                 <div class="col-md-6">{{ form_row(form.dateAcquisation) }}</div>
-                <div class="col-md-6">{{ form_row(form.location) }}</div> <!-- Ajout de l'emplacement ici -->
+                <div class="col-md-6">{{ form_row(form.location) }}</div>
+                <div class="col-md-6">{{ form_row(form.UserAssigned) }}</div> <!-- Updated to UserAssigned -->
             </div>
             <button type="submit" class="btn btn-primary">
                 {{ action }} <!-- Affichera "Modifier" ou "Ajouter" selon l'action -->

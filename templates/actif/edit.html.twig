@@ -25,10 +25,12 @@
                 <div class="col-md-6">{{ form_row(form.etat) }}</div>
                 <div class="col-md-6">{{ form_row(form.dateAcquisation) }}</div>
                 <div class="col-md-6">{{ form_row(form.location) }}</div>
-                <div class="col-md-6">{{ form_row(form.UserAssigned) }}</div> <!-- Updated to UserAssigned -->
+                {% if form.UserAssigned is defined %}
+                    <div class="col-md-6">{{ form_row(form.UserAssigned) }}</div>
+                {% endif %}
             </div>
             <button type="submit" class="btn btn-primary">
-                {{ action }} <!-- Affichera "Modifier" ou "Ajouter" selon l'action -->
+                {{ action }}
             </button>
         {{ form_end(form) }}
     </div>

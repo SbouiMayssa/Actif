@@ -37,88 +37,87 @@ final class ActifController extends AbstractController
         ]);
     }
 
-    #[Route('/actif/add', name: 'add_actif')]
-    public function AddAsset(EntityManagerInterface $manager, Request $request): Response
-    {
-        $actif = new Actif();
-        $form = $this->createForm(ActifType::class, $actif);
-        $form->handleRequest($request);
+  #[Route('/actif/add', name: 'add_actif')]
+public function AddAsset(EntityManagerInterface $manager, Request $request): Response
+{
+    $actif = new Actif();
+    $form = $this->createForm(ActifType::class, $actif); // isEdit defaults to false
+    $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            try {
-                $actif->setCreatedBy($this->getUser());
-                $manager->persist($actif);
-                $manager->flush();
-
-                // Enregistrer l'historique
-                $historique = new Historique();
-                $historique->setActif($actif);
-                $historique->setAction('Création');
-                $historique->setDateAction(new \DateTimeImmutable());
-                $historique->setActionneur($this->getUser());
-                $historique->setDetails(['message' => "Actif créé"]);
-                $historique->setEtat($actif->getEtat());
-
-                $manager->persist($historique);
-                $manager->flush();
-
-                $this->addFlash('success', "L'actif est ajouté avec succès");
-                return $this->redirectToRoute('all_actif');
-            } catch (UniqueConstraintViolationException $e) {
-                $this->addFlash('error', "Erreur : Un actif avec ce numéro de série existe déjà !");
-                return $this->redirectToRoute('all_actif');
-            } catch (\Exception $e) {
-                $this->addFlash('error', "Une erreur est survenue lors de l'ajout de l'actif.");
-            }
-        }
-
-        return $this->render('actif/add.html.twig', [
-            'form' => $form->createView(),
-            'action' => 'Ajouter',
-        ]);
-    }
-
-    #[Route('/actif/edit/{id<\d+>}', name: 'actif_edit')]
-    public function editActif(
-        EntityManagerInterface $manager,
-        Request $request,
-        Actif $actif,
-        $id,
-        Security $security
-    ): Response {
-        if ($actif->getDeletedAt() !== null) {
-            $this->addFlash('error', "L'actif $id est archivé et ne peut pas être modifié.");
-            return $this->redirectToRoute('all_actif');
-        }
-    
-        $form = $this->createForm(ActifType::class, $actif);
-        $form->handleRequest($request);
-    
-        if ($form->isSubmitted() && $form->isValid()) {
+    if ($form->isSubmitted() && $form->isValid()) {
+        try {
+            $actif->setCreatedBy($this->getUser());
             $manager->persist($actif);
             $manager->flush();
-    
+
             $historique = new Historique();
             $historique->setActif($actif);
-            $historique->setAction('Modification');
+            $historique->setAction('Création');
             $historique->setDateAction(new \DateTimeImmutable());
             $historique->setActionneur($this->getUser());
-            $historique->setDetails(['message' => "Actif modifié"]);
+            $historique->setDetails(['message' => "Actif créé"]);
             $historique->setEtat($actif->getEtat());
-    
+
             $manager->persist($historique);
             $manager->flush();
-    
-            $this->addFlash('success', "L'actif de $id est modifié avec succès");
+
+            $this->addFlash('success', "L'actif est ajouté avec succès");
             return $this->redirectToRoute('all_actif');
+        } catch (UniqueConstraintViolationException $e) {
+            $this->addFlash('error', "Erreur : Un actif avec ce numéro de série existe déjà !");
+            return $this->redirectToRoute('all_actif');
+        } catch (\Exception $e) {
+            $this->addFlash('error', "Une erreur est survenue lors de l'ajout de l'actif.");
         }
-    
-        return $this->render('actif/edit.html.twig', [
-            'form' => $form->createView(),
-            'actif' => $actif,
-            'action' => 'Modifier',
-        ]);
     }
+
+    return $this->render('actif/add.html.twig', [
+        'form' => $form->createView(),
+        'action' => 'Ajouter',
+    ]);
+}
+
+#[Route('/actif/edit/{id<\d+>}', name: 'actif_edit')]
+public function editActif(
+    EntityManagerInterface $manager,
+    Request $request,
+    Actif $actif,
+    $id,
+    Security $security
+): Response {
+    if ($actif->getDeletedAt() !== null) {
+        $this->addFlash('error', "L'actif $id est archivé et ne peut pas être modifié.");
+        return $this->redirectToRoute('all_actif');
+    }
+
+    $form = $this->createForm(ActifType::class, $actif, ['isEdit' => true]); // Correctly includes UserAssigned
+    $form->handleRequest($request);
+
+    if ($form->isSubmitted() && $form->isValid()) {
+        $manager->persist($actif);
+        $manager->flush();
+
+        $historique = new Historique();
+        $historique->setActif($actif);
+        $historique->setAction('Modification');
+        $historique->setDateAction(new \DateTimeImmutable());
+        $historique->setActionneur($this->getUser());
+        $historique->setDetails(['message' => "Actif modifié"]);
+        $historique->setEtat($actif->getEtat());
+
+        $manager->persist($historique);
+        $manager->flush();
+
+        $this->addFlash('success', "L'actif de $id est modifié avec succès");
+        return $this->redirectToRoute('all_actif');
+    }
+
+    return $this->render('actif/edit.html.twig', [
+        'form' => $form->createView(),
+        'actif' => $actif,
+        'action' => 'Modifier',
+    ]);
+}
     #[Route('/actif/delete/{id}', name: 'actif_delete')]
     public function delete(Actif $actif, ActifRepository $actifRepository, $id, EntityManagerInterface $manager): Response
     {

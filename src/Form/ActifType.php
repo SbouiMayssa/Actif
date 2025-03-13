@@ -95,8 +95,11 @@ class ActifType extends AbstractType
                 'constraints' => [
                     new Assert\NotBlank(['message' => 'Veuillez sélectionner un emplacement'])
                 ]
-            ])
-            ->add('UserAssigned', EntityType::class, [ // Use the exact property name from the entity
+            ]);
+
+        // Conditionally add UserAssigned field only if isEdit is true
+        if ($options['isEdit']) {
+            $builder->add('UserAssigned', EntityType::class, [
                 'class' => Employer::class,
                 'choice_label' => function (Employer $employer) {
                     return $employer->getNom() . ' ' . $employer->getPrenom();
@@ -107,12 +110,17 @@ class ActifType extends AbstractType
                 'attr' => ['class' => 'form-select'],
                 'required' => false, // Set to true if at least one employee is mandatory
             ]);
+        }
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'data_class' => Actif::class,
+            'isEdit' => false, // Default to false (for adding)
         ]);
+
+        // Define isEdit as a required option type
+        $resolver->setAllowedTypes('isEdit', 'bool');
     }
 }
